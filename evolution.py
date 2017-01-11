@@ -92,8 +92,8 @@ def crossover(ind1, ind2):
 def selection(population, planet, size):
     fitness = []
     for i, individual in enumerate(population):
-        fitness.append((0 - howMuchLeft(planet, individual), i))
-    fitness.sort(key=lambda x: x[0])
+        fitness.append((howMuchLeft(planet, individual), i))
+    fitness.sort(key=lambda x: x[0], reverse=True)
     strongest = fitness[:size]
     new_generation = [population[j] for i, j in strongest]
     return new_generation
@@ -106,11 +106,26 @@ def randomGeneration(size):
         generation.append(h)
     return generation
 
-if __name__ == "main":
-    earth = Earth()
-    population = randomGeneration(POP_SIZE)
-    while True:
-        new_population = newMutateGeneration(population)
-        print 2
+def satisfied(earth, population):
+    for i in range(len(population)):
+        if howMuchLeft(earth, population[i]) >= 0:
+            return (population[i].fat, population[i].skinColor)
+    return False
+
+
+earth = Earth()
+population = randomGeneration(POP_SIZE)
+count = 0
+while True:
+    new_population = newMutateGeneration(population)
+    population = selection(new_population, earth, POP_SIZE)
+    ages = []
+    if satisfied(earth, population) != False:
+        print "We have a winner", count
+
+        break
+    count += 1
+
+
 
 
