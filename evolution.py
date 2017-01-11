@@ -33,7 +33,6 @@ class Earth:
 
 class Human:
     def __init__(self):
-
         self.fat = random.randint(fMin, fMax) / 50.
         self.skinColor = random.randint(cMin, cMax)
         self.age = 80
