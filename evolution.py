@@ -147,9 +147,6 @@ earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
 while True:
-    #for guy in population:
-    #    print guy.skinColor, ' ', guy.fat, ' ', guy.lung, ' ', howMuchLeft(earth, guy)
-    #    pass
     temp = satisfied(earth, population)
     averageAge = temp[-1]
     print "iteration ", count, " average age = ", averageAge
