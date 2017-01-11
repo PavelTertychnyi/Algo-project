@@ -45,7 +45,7 @@ class Human:
 
     def setFat(self, fatVal):
         self.fat = fatVal / fMax
-        print fatVal, ' ', self.fat
+        #print fatVal, ' ', self.fat
 
     def setSkinColor(self, skinColorVal):
         self.skinColor = skinColorVal
@@ -56,7 +56,8 @@ class Human:
 
 def howMuchLeft(earth, human):
     coef = 1. - 0.5 * abs(earth.s - earth.s0) / earth.sMaxDif * abs(human.skinColor - cOpt) / human.skinMaxDif - 0.5 * abs(earth.t - earth.t0) / earth.tMaxDif * abs(human.fat * 2 - fOpt) / human.fMaxDif
-    F = earth.maxAge * (coef**2) * 9 / 10.
+    F = earth.maxAge * (coef**10) * 4.5 / 5.
+    print "F", F, ' ', F - human.age, ' ', human.age
     return  F - human.age
 
 
@@ -88,8 +89,9 @@ def newMutateGeneration(population):
 
 def crossover(ind1, ind2):
     h = Human()
-    h.setFat((ind1.fat + ind2.fat) / 2)
-    h.setAge((ind1.skinColor + ind2.skinColor) / 2)
+    h.setFat((ind1.fat + ind2.fat) / 2 * fMax)
+    h.setSkinColor((ind1.skinColor + ind2.skinColor) / 2)
+    #print "children", h.fat, h.skinColor
     return h
 
 
@@ -122,22 +124,55 @@ def satisfied(earth, population):
 
 def randomCrossoverGeneration(population):
     generation = []
-    for i in range(POP_SIZE * NUM_OFFSPRINGS):
-        ind1 = random.choice(population)
+    pairs = []
+    p = choseParent(population)
+    #print p[0].fat, p[0].skinColor, "\t", p[1].fat, p[1].skinColor
+    pairs.append(p)
+    pairs.append((p[1], p[0]))
+    h = crossover(p[0], p[1])
+    generation.append(h)
+    while len(generation) != NUM_OFFSPRINGS:
+        p = choseParent(population)
+        #print p
+        if p not in pairs:
+            pairs.append(p)
+            pairs.append((p[1], p[0]))
+            #print p[0].fat, p[0].skinColor, "\t", p[1].fat, p[1].skinColor
+            h = crossover(p[0], p[1])
+            generation.append(h)
+    return shiftMutation(generation)
+
+def shiftMutation(population):
+    mutants = []
+    for individ in population:
+
+        for j in range(10):
+            mutate_feature = random.randint(0, len(individ) - 1)
+            new_individual = Human()
+            change = random.uniform(-0.1, 0.1)
+            if mutate_feature == 0:
+                new_individual.setFat(individ.fat * fMax * (1 + change))
+                new_individual.setSkinColor(individ.skinColor)
+            else:
+                new_individual.setFat(individ.fat * fMax)
+                new_individual.setSkinColor(individ.skinColor * (1 + change))
+            mutants.append(new_individual)
+    return mutants
+
+
+def choseParent(population):
+    ind1 = random.choice(population)
+    ind2 = random.choice(population)
+    while ind2 == ind1:
         ind2 = random.choice(population)
-        while ind2 == ind1:
-            ind2 = random.choice(population)
-        h = crossover(ind1, ind2)
-        print h.fat, h.skinColor
-        generation.append(h)
-    return generation
+    return (ind1, ind2)
 
 def probabilityCrossoverGeneration(population, earth):
     generation = []
     ages = []
     total_age = 0
     for i in range(len(population)):
-        a = howMuchLeft(earth, population[i])
+        a = population[i].age + howMuchLeft(earth, population[i])
         if a < 0:
             ages.append(0)
         else:
@@ -148,17 +183,16 @@ def probabilityCrossoverGeneration(population, earth):
     for i in range(len(population)):
         prob.append(ages[i] / float(total_age) + prev)
         prev = prob[i]
-        print prev
-    for i in range(POP_SIZE * NUM_OFFSPRINGS):
-        ind1 = chooseParent(prob, population)
-        ind2 = chooseParent(prob, population)
+    for i in range(NUM_OFFSPRINGS):
+        ind1 = chooseProbableParent(prob, population)
+        ind2 = chooseProbableParent(prob, population)
         while ind2 == ind1:
-            ind2 = chooseParent(prob, population)
+            ind2 = chooseProbableParent(prob, population)
         h = crossover(ind1, ind2)
         generation.append(h)
     return generation
 
-def chooseParent(prob, population):
+def chooseProbableParent(prob, population):
     toss = random.random()
     count = 0
     while toss > prob[count]:
@@ -178,9 +212,9 @@ while True:
         print "We have a winner", count
         print temp
         break
-    new_population = newMutateGeneration(population)
+    new_population = randomCrossoverGeneration(population)
     population = selection(new_population, earth, POP_SIZE)
     ages = []
 
-    
+
     count += 1
