@@ -143,6 +143,52 @@ def satisfied(earth, population):
     return (False, averageAge)
 
 
+def randomCrossoverGeneration(population):
+    generation = []
+    for i in range(POP_SIZE * NUM_OFFSPRINGS):
+        ind1 = random.choice(population)
+        ind2 = random.choice(population)
+        while ind2 == ind1:
+            ind2 = random.choice(population)
+        h = crossover(ind1, ind2)
+        print h.fat, h.skinColor
+        generation.append(h)
+    return generation
+
+def probabilityCrossoverGeneration(population, earth):
+    generation = []
+    ages = []
+    total_age = 0
+    for i in range(len(population)):
+        a = howMuchLeft(earth, population[i])
+        if a < 0:
+            ages.append(0)
+        else:
+            ages.append(a)
+            total_age += a
+    prob = []
+    prev = 0
+    for i in range(len(population)):
+        prob.append(ages[i] / float(total_age) + prev)
+        prev = prob[i]
+        print prev
+    for i in range(POP_SIZE * NUM_OFFSPRINGS):
+        ind1 = chooseParent(prob, population)
+        ind2 = chooseParent(prob, population)
+        while ind2 == ind1:
+            ind2 = chooseParent(prob, population)
+        h = crossover(ind1, ind2)
+        generation.append(h)
+    return generation
+
+def chooseParent(prob, population):
+    toss = random.random()
+    count = 0
+    while toss > prob[count]:
+        count += 1
+    return population[count]
+
+
 earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
@@ -157,4 +203,6 @@ while True:
     new_population = newMutateGeneration(population)
     population = selection(new_population, earth, POP_SIZE)
     ages = []
+
+    
     count += 1
