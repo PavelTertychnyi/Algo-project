@@ -1,20 +1,22 @@
 import math
 import random
 
-POP_SIZE = 23
-NUM_OFFSPRINGS = 10
+POP_SIZE = 5
+NUM_OFFSPRINGS = 5
 
 cMax = 36
 cMin = 1
+cOpt = 18
 
-tMax = 80
-tMin = -40
+tMax = 100
+tMin = -60
 
-sMax = 1500
-sMin = 1200
+sMax = 3000
+sMin = 0
 
-fMax = 50
+fMax = 50000000.
 fMin = 0
+fOpt = 0.5
 
 
 class Earth:
@@ -32,15 +34,18 @@ class Earth:
 
 class Human:
     def __init__(self):
-        self.fat = random.randint(fMin, fMax) / 50.
+        self.fat = random.randint(fMin, fMax) / fMax
         self.skinColor = random.randint(cMin, cMax)
         self.age = 80
+        self.fMaxDif = max(abs(1 - fOpt), abs(0 - fOpt))
+        self.skinMaxDif = max(abs(cMax - cOpt), abs(cMin - cOpt))
 
     def __len__(self):
         return 2
 
     def setFat(self, fatVal):
-        self.fat = fatVal / 50.
+        self.fat = fatVal / fMax
+        print fatVal, ' ', self.fat
 
     def setSkinColor(self, skinColorVal):
         self.skinColor = skinColorVal
@@ -50,10 +55,9 @@ class Human:
 
 
 def howMuchLeft(earth, human):
-    F = earth.maxAge - human.age * (
-    1 - 0.5 * abs(earth.s - earth.s0) * (earth.s - earth.s0) * cMax / earth.sMaxDif / earth.sMaxDif / human.skinColor -
-    0.5 * abs(earth.t - earth.t0) * (earth.t - earth.t0) / earth.tMaxDif / earth.tMaxDif * human.fat)
-    return F
+    coef = 1. - 0.5 * abs(earth.s - earth.s0) / earth.sMaxDif * abs(human.skinColor - cOpt) / human.skinMaxDif - 0.5 * abs(earth.t - earth.t0) / earth.tMaxDif * abs(human.fat * 2 - fOpt) / human.fMaxDif
+    F = earth.maxAge * (coef**2) * 9 / 10.
+    return  F - human.age
 
 
 def mutation(population):
@@ -76,7 +80,7 @@ def newMutateGeneration(population):
                 new_individual.setFat(random.randint(fMin, fMax))
                 new_individual.setSkinColor(individual.skinColor)
             else:
-                new_individual.setFat(individual.fat)
+                new_individual.setFat(individual.fat * fMax)
                 new_individual.setSkinColor(random.randint(cMin, cMax))
             generation.append(new_individual)
     return generation
@@ -94,8 +98,11 @@ def selection(population, planet, size):
     for i, individual in enumerate(population):
         fitness.append((howMuchLeft(planet, individual), i))
     fitness.sort(key=lambda x: x[0], reverse=True)
+    #print fitness
     strongest = fitness[:size]
+    #print strongest
     new_generation = [population[j] for i, j in strongest]
+    #print new_generation
     return new_generation
 
 
@@ -163,16 +170,17 @@ earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
 while True:
-    new_population = probabilityCrossoverGeneration(population, earth)
+    #for guy in population:
+    #    print guy.skinColor, ' ', guy.fat, ' ', howMuchLeft(earth, guy)
+    #    pass
+    temp = satisfied(earth, population)
+    if (temp != False):
+        print "We have a winner", count
+        print temp
+        break
+    new_population = newMutateGeneration(population)
     population = selection(new_population, earth, POP_SIZE)
     ages = []
-    temp = satisfied(earth, population)
-    if temp != False:
-        print "iteration", count
-        print "We have a winner", temp
-        break
+
+    
     count += 1
-
-
-
-
