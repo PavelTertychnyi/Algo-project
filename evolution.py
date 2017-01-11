@@ -111,5 +111,6 @@ if __name__ == "main":
     population = randomGeneration(POP_SIZE)
     while True:
         new_population = newMutateGeneration(population)
+        print 2
 
 
