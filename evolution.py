@@ -84,6 +84,13 @@ def selection(population, planet, size):
     return new_generation
 
 
+def randomGeneration(size):
+    generation = []
+    for i in range(size):
+        h = Human()
+        generation.append(h)
+    return generation
+
 if __name__ == "main":
     earth = Earth()
     population = randomGeneration(10)
