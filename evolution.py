@@ -84,7 +84,7 @@ def newMutateGeneration(population):
 
 def crossover(ind1, ind2):
     h = Human()
-    h.setFat((ind1.fat + ind2.far) / 2)
+    h.setFat((ind1.fat + ind2.fat) / 2)
     h.setAge((ind1.skinColor + ind2.skinColor) / 2)
     return h
 
@@ -109,20 +109,67 @@ def randomGeneration(size):
 def satisfied(earth, population):
     for i in range(len(population)):
         if howMuchLeft(earth, population[i]) >= 0:
-            return (population[i].fat, population[i].skinColor)
+            return (population[i].fat, population[i].skinColor, howMuchLeft(earth, population[i]))
     return False
+
+
+def randomCrossoverGeneration(population):
+    generation = []
+    for i in range(POP_SIZE * NUM_OFFSPRINGS):
+        ind1 = random.choice(population)
+        ind2 = random.choice(population)
+        while ind2 == ind1:
+            ind2 = random.choice(population)
+        h = crossover(ind1, ind2)
+        print h.fat, h.skinColor
+        generation.append(h)
+    return generation
+
+def probabilityCrossoverGeneration(population, earth):
+    generation = []
+    ages = []
+    total_age = 0
+    for i in range(len(population)):
+        a = howMuchLeft(earth, population[i])
+        if a < 0:
+            ages.append(0)
+        else:
+            ages.append(a)
+            total_age += a
+    prob = []
+    prev = 0
+    for i in range(len(population)):
+        prob.append(ages[i] / float(total_age) + prev)
+        prev = prob[i]
+        print prev
+    for i in range(POP_SIZE * NUM_OFFSPRINGS):
+        ind1 = chooseParent(prob, population)
+        ind2 = chooseParent(prob, population)
+        while ind2 == ind1:
+            ind2 = chooseParent(prob, population)
+        h = crossover(ind1, ind2)
+        generation.append(h)
+    return generation
+
+def chooseParent(prob, population):
+    toss = random.random()
+    count = 0
+    while toss > prob[count]:
+        count += 1
+    return population[count]
 
 
 earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
 while True:
-    new_population = newMutateGeneration(population)
+    new_population = probabilityCrossoverGeneration(population, earth)
     population = selection(new_population, earth, POP_SIZE)
     ages = []
-    if satisfied(earth, population) != False:
-        print "We have a winner", count
-
+    temp = satisfied(earth, population)
+    if temp != False:
+        print "iteration", count
+        print "We have a winner", temp
         break
     count += 1
 
