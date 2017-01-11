@@ -48,9 +48,6 @@ class Human:
     def setAge(self, ageVal):
         self.age = ageVal
 
-a = Human()
-print
-
 
 def howMuchLeft(earth, human):
     F = earth.maxAge - human.age * (
@@ -87,9 +84,7 @@ def selection(population, planet, size):
     return new_generation
 
 
-def randomGeneration(size):
-    generation = []
-    for i in range(size):
-        h = Human()
-        generation.append(h)
-    return generation
+if __name__ == "main":
+    earth = Earth()
+    population = randomGeneration(10)
+
