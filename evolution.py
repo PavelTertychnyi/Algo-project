@@ -19,22 +19,24 @@ fMin = 0
 
 class Earth:
     def __init__(self):
-        t = random.randint(tMin, tMax)
-        s = random.randint(sMin, sMax)
-        t0 = 20
-        s0 = 1367
-        maxAge = 122
-        c1 = 0.5
-        c2 = 0.5
-        sMaxDif = max(abs(sMax - s0), abs(sMin - s0))
-        tMaxDif = max(abs(tMax - t0), abs(tMin - t0))
+
+        self.t = random.randint(tMin, tMax)
+        self.s = random.randint(sMin, sMax)
+        self.t0 = 20
+        self.s0 = 1367
+        self.maxAge = 122
+        self.c1 = 0.5
+        self.c2 = 0.5
+        self.sMaxDif = max(abs(sMax - self.s0), abs(sMin - self.s0))
+        self.tMaxDif = max(abs(tMax - self.t0), abs(tMin - self.t0))
 
 
 class Human:
     def __init__(self):
-        fat = random.randint(fMin, fMax) / 50.
-        skinColor = random.randint(cMin, cMax)
-        age = 80
+
+        self.fat = random.randint(fMin, fMax) / 50.
+        self.skinColor = random.randint(cMin, cMax)
+        self.age = 80
 
     def setFat(self, fatVal):
         self.fat = fatVal
@@ -43,7 +45,7 @@ class Human:
         self.skinColor = skinColorVal
 
     def setAge(self, ageVal):
-        age = ageVal
+        self.age = ageVal
 
 
 
@@ -79,8 +81,15 @@ def selection(population, planet, size):
     strongest = fitness[:size + 1]
     new_generation = [population[j] for i, j in strongest]
     return new_generation
+  
+def randomGeneration(size):
+    generation = []
+    for i in range(size):
+        h = Human()
+        generation.append(h)
+    return generation
 
-
-
-
+if __name__ == "main":
+    earth = Earth()
+    population = randomGeneration(10)
 
