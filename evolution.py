@@ -54,7 +54,6 @@ class Human:
 
     def setFat(self, fatVal):
         self.fat = fatVal / fMax
-        print fatVal, ' ', self.fat
 
     def setSkinColor(self, skinColorVal):
         self.skinColor = skinColorVal
@@ -71,7 +70,7 @@ def howMuchLeft(earth, human):
     - 1 / 3. * abs(earth.s - earth.s0) / earth.sMaxDif * abs(human.skinColor - cOpt) / human.skinMaxDif \
     - 1 / 3. * abs(earth.t - earth.t0) / earth.tMaxDif * abs(human.fat * 2 - fOpt) / human.fMaxDif \
     - 1 / 3. * abs(earth.p - earth.p0) / earth.pMaxDif * abs(human.lung - lOpt) / human.lMaxDif
-    F = earth.maxAge * (coef**10) * 17 / 20.
+    F = earth.maxAge * (coef**6) * 17 / 20.
     return  F - human.age
 
 
@@ -119,13 +118,9 @@ def selection(population, planet, size):
     for i, individual in enumerate(population):
         fitness.append((howMuchLeft(planet, individual), i))
     fitness.sort(key=lambda x: x[0], reverse=True)
-    #print fitness
     strongest = fitness[:size]
-    #print strongest
     new_generation = [population[j] for i, j in strongest]
-    #print new_generation
     return new_generation
-
 
 def randomGeneration(size):
     generation = []
@@ -135,23 +130,32 @@ def randomGeneration(size):
     return generation
 
 def satisfied(earth, population):
+    count = 0
+    averageAge = 0.
     for i in range(len(population)):
-        if howMuchLeft(earth, population[i]) >= 0:
-            return (population[i].fat, population[i].skinColor, population[i].lung)
-    return False
+        yearsLeft = howMuchLeft(earth, population[i])
+        averageAge += population[i].age + yearsLeft
+        if yearsLeft >= 0:
+            count += 1
+    averageAge /= len(population)
+    if (count == len(population)):
+        return (population[i].fat, population[i].skinColor, population[i].lung, averageAge)
+    return (False, averageAge)
 
 
 earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
 while True:
-    for guy in population:
-        print guy.skinColor, ' ', guy.fat, ' ', guy.lung, ' ', howMuchLeft(earth, guy)
-        pass
+    #for guy in population:
+    #    print guy.skinColor, ' ', guy.fat, ' ', guy.lung, ' ', howMuchLeft(earth, guy)
+    #    pass
     temp = satisfied(earth, population)
-    if (temp != False):
+    averageAge = temp[-1]
+    print "iteration ", count, " average age = ", averageAge
+    if (temp[0] != False):
         print "We have a winner", count
-        print temp
+        print temp[:-1]
         break
     new_population = newMutateGeneration(population)
     population = selection(new_population, earth, POP_SIZE)
