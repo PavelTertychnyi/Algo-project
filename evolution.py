@@ -1,4 +1,3 @@
-import math
 import random
 
 POP_SIZE = 5
@@ -6,7 +5,7 @@ NUM_OFFSPRINGS = 5
 
 cMax = 36
 cMin = 1
-cOpt = 18
+cOpt = cMin + (cMax - cMin) / 2
 
 tMax = 100
 tMin = -60
@@ -18,30 +17,40 @@ fMax = 50000000.
 fMin = 0
 fOpt = 0.5
 
+pMax = 33
+pMin = 0.356
+
+lMax = 10
+lMin = 2
+lOpt = lMin + (lMax - lMin) / 2
+
 
 class Earth:
     def __init__(self):
-        self.t = random.randint(tMin, tMax)
-        self.s = random.randint(sMin, sMax)
-        self.t0 = 20
-        self.s0 = 1367
+        self.t = random.uniform(tMin, tMax)
+        self.s = random.uniform(sMin, sMax)
+        self.p = random.uniform(pMin, pMax)
+        self.t0 = tMin + (tMax - tMin) / 2
+        self.s0 = sMin + (sMax - sMin) / 2
+        self.p0 = pMin + (pMax - pMin) / 2
         self.maxAge = 122
-        self.c1 = 0.5
-        self.c2 = 0.5
         self.sMaxDif = max(abs(sMax - self.s0), abs(sMin - self.s0))
         self.tMaxDif = max(abs(tMax - self.t0), abs(tMin - self.t0))
+        self.pMaxDif = max(abs(pMax - self.p0), abs(pMin - self.p0))
 
 
 class Human:
     def __init__(self):
-        self.fat = random.randint(fMin, fMax) / fMax
+        self.fat = random.uniform(fMin, fMax) / fMax
         self.skinColor = random.randint(cMin, cMax)
+        self.lung = random.uniform(lMin, lMax)
         self.age = 80
         self.fMaxDif = max(abs(1 - fOpt), abs(0 - fOpt))
         self.skinMaxDif = max(abs(cMax - cOpt), abs(cMin - cOpt))
+        self.lMaxDif = max(abs(lMax - lOpt), abs(lMin - lOpt))
 
     def __len__(self):
-        return 2
+        return 3
 
     def setFat(self, fatVal):
         self.fat = fatVal / fMax
@@ -53,10 +62,16 @@ class Human:
     def setAge(self, ageVal):
         self.age = ageVal
 
+    def setLung(self, pressureVal):
+        self.pressure = pressureVal
+
 
 def howMuchLeft(earth, human):
-    coef = 1. - 0.5 * abs(earth.s - earth.s0) / earth.sMaxDif * abs(human.skinColor - cOpt) / human.skinMaxDif - 0.5 * abs(earth.t - earth.t0) / earth.tMaxDif * abs(human.fat * 2 - fOpt) / human.fMaxDif
-    F = earth.maxAge * (coef**2) * 9 / 10.
+    coef = 1. \
+    - 1 / 3. * abs(earth.s - earth.s0) / earth.sMaxDif * abs(human.skinColor - cOpt) / human.skinMaxDif \
+    - 1 / 3. * abs(earth.t - earth.t0) / earth.tMaxDif * abs(human.fat * 2 - fOpt) / human.fMaxDif \
+    - 1 / 3. * abs(earth.p - earth.p0) / earth.pMaxDif * abs(human.lung - lOpt) / human.lMaxDif
+    F = earth.maxAge * (coef**10) * 17 / 20.
     return  F - human.age
 
 
@@ -77,11 +92,17 @@ def newMutateGeneration(population):
             mutate_feature = random.randint(0, len(individual) - 1)
             new_individual = Human()
             if mutate_feature == 0:
-                new_individual.setFat(random.randint(fMin, fMax))
+                new_individual.setFat(random.uniform(fMin, fMax))
                 new_individual.setSkinColor(individual.skinColor)
-            else:
+                new_individual.setLung(individual.lung)
+            elif mutate_feature == 1:
                 new_individual.setFat(individual.fat * fMax)
                 new_individual.setSkinColor(random.randint(cMin, cMax))
+                new_individual.setLung(individual.lung)
+            else:
+                new_individual.setFat(individual.fat * fMax)
+                new_individual.setSkinColor(individual.skinColor)
+                new_individual.setLung(random.uniform(lMin, lMax))
             generation.append(new_individual)
     return generation
 
@@ -116,7 +137,7 @@ def randomGeneration(size):
 def satisfied(earth, population):
     for i in range(len(population)):
         if howMuchLeft(earth, population[i]) >= 0:
-            return (population[i].fat, population[i].skinColor, howMuchLeft(earth, population[i]))
+            return (population[i].fat, population[i].skinColor, population[i].lung)
     return False
 
 
@@ -170,9 +191,9 @@ earth = Earth()
 population = randomGeneration(POP_SIZE)
 count = 0
 while True:
-    #for guy in population:
-    #    print guy.skinColor, ' ', guy.fat, ' ', howMuchLeft(earth, guy)
-    #    pass
+    for guy in population:
+        print guy.skinColor, ' ', guy.fat, ' ', guy.lung, ' ', howMuchLeft(earth, guy)
+        pass
     temp = satisfied(earth, population)
     if (temp != False):
         print "We have a winner", count
