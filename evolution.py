@@ -1,9 +1,8 @@
 import math
 import random
 
-
 POP_SIZE = 23
-NUM_OFFSPRINGS = POP_SIZE * 10
+NUM_OFFSPRINGS = 10
 
 cMax = 36
 cMin = 1
@@ -17,9 +16,9 @@ sMin = 1200
 fMax = 50
 fMin = 0
 
+
 class Earth:
     def __init__(self):
-
         self.t = random.randint(tMin, tMax)
         self.s = random.randint(sMin, sMax)
         self.t0 = 20
@@ -37,8 +36,11 @@ class Human:
         self.skinColor = random.randint(cMin, cMax)
         self.age = 80
 
+    def __len__(self):
+        return 2
+
     def setFat(self, fatVal):
-        self.fat = fatVal
+        self.fat = fatVal / 50.
 
     def setSkinColor(self, skinColorVal):
         self.skinColor = skinColorVal
@@ -47,10 +49,10 @@ class Human:
         self.age = ageVal
 
 
-
 def howMuchLeft(earth, human):
-    F = earth.maxAge - human.age * (1 - 0.5 * abs(earth.s - earth.s0) * (earth.s - earth.s0) * cMax / earth.sMaxDif / earth.sMaxDif / human.skinColor -
-                                        0.5 * abs(earth.t - earth.t0) * (earth.t - earth.t0) / earth.tMaxDif / earth.tMaxDif * human.fat)
+    F = earth.maxAge - human.age * (
+    1 - 0.5 * abs(earth.s - earth.s0) * (earth.s - earth.s0) * cMax / earth.sMaxDif / earth.sMaxDif / human.skinColor -
+    0.5 * abs(earth.t - earth.t0) * (earth.t - earth.t0) / earth.tMaxDif / earth.tMaxDif * human.fat)
     return F
 
 
@@ -58,29 +60,45 @@ def mutation(population):
     individual = random.choice(population)
     mutate_feature = random.randint(0, len(individual) - 1)
     if mutate_feature == 0:
-        individual[mutate_feature] = random.randint(fMin, fMax)
+        individual.setFat(random.randint(fMin, fMax))
     else:
-        individual[mutate_feature] = random.randint(cMin, cMax)
+        individual.setSkinColor(random.randint(cMin, cMax))
     population[population.index(individual)] = individual
     return population
 
+def newMutateGeneration(population):
+    generation = []
+    for individual in population:
+        for i in range(NUM_OFFSPRINGS):
+            mutate_feature = random.randint(0, len(individual) - 1)
+            new_individual = Human()
+            if mutate_feature == 0:
+                new_individual.setFat(random.randint(fMin, fMax))
+                new_individual.setSkinColor(individual.skinColor)
+            else:
+                new_individual.setFat(individual.fat)
+                new_individual.setSkinColor(random.randint(cMin, cMax))
+            generation.append(new_individual)
+    return generation
+
 
 def crossover(ind1, ind2):
-    child = tuple()
-    for feature in xrange(len(ind1) - 1):
-        child += ((ind1[feature] + ind2[feature]) / 2.0, )
-    return child
+    h = Human()
+    h.setFat((ind1.fat + ind2.far) / 2)
+    h.setAge((ind1.skinColor + ind2.skinColor) / 2)
+    return h
 
 
 def selection(population, planet, size):
     fitness = []
     for i, individual in enumerate(population):
-        fitness.append(0 - howMuchLeft(planet, individual), i)
+        fitness.append((0 - howMuchLeft(planet, individual), i))
     fitness.sort(key=lambda x: x[0])
-    strongest = fitness[:size + 1]
+    strongest = fitness[:size]
     new_generation = [population[j] for i, j in strongest]
     return new_generation
-  
+
+
 def randomGeneration(size):
     generation = []
     for i in range(size):
@@ -90,5 +108,9 @@ def randomGeneration(size):
 
 if __name__ == "main":
     earth = Earth()
-    population = randomGeneration(10)
+    population = randomGeneration(POP_SIZE)
+    while True:
+        new_population = newMutateGeneration(population)
+        print 2
+
 
