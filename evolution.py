@@ -19,6 +19,7 @@ fMin = 0
 
 class Earth:
     def __init__(self):
+
         self.t = random.randint(tMin, tMax)
         self.s = random.randint(sMin, sMax)
         self.t0 = 20
@@ -71,11 +72,15 @@ def crossover(ind1, ind2):
     return child
 
 
-def selection(population, size):
+def selection(population, planet, size):
     fitness = []
-    for individual in population:
-        fitness.append()
-
+    for i, individual in enumerate(population):
+        fitness.append(0 - howMuchLeft(planet, individual), i)
+    fitness.sort(key=lambda x: x[0])
+    strongest = fitness[:size + 1]
+    new_generation = [population[j] for i, j in strongest]
+    return new_generation
+  
 def randomGeneration(size):
     generation = []
     for i in range(size):
